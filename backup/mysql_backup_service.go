@@ -27,27 +27,30 @@ func NewMysqlBackupService() (*mysqlBackupService,error) {
 	return dbs,nil
 }
 
-func (dbs *mysqlBackupService) BackupDatabases(databaseNames []string) (string,error) {
+func (dbs *mysqlBackupService) BackupDatabases(databaseNames []string) (string,bool,error) {
 	dir, err := ioutil.TempDir(".", "databaseBackup*")
-	if (err != nil) {return "", err}
+	if (err != nil) {return "", false, err}
 	defer os.RemoveAll(dir)
 
 	zipFile, err := ioutil.TempFile(".", "tmpzip")
-    if err != nil {return "", err}
+    if err != nil {return "", false, err}
     defer zipFile.Close()
 	zipWriter := zip.NewWriter(zipFile)
 	defer zipWriter.Close()
 
+	warnings := false
 	for _, dbname := range databaseNames {
 		filename := dbname + ".sql"
 		filepath := dir + "/" + filename
 		err = dbs.backupDatabase(filepath, dbname)
 		if (err == nil) {
 			dbs.addFileToZip(zipWriter, filepath, filename)
+		} else {
+			warnings = true
 		}
 	}
 	
-	return zipFile.Name(), nil
+	return zipFile.Name(), warnings, nil
 }
 
 func (dbs *mysqlBackupService) addFileToZip(zipWriter *zip.Writer, filepath string, filename string) error {
@@ -62,7 +65,7 @@ func (dbs *mysqlBackupService) addFileToZip(zipWriter *zip.Writer, filepath stri
 }
 
 func (dbs *mysqlBackupService) backupDatabase(filename string, databaseName string) (error) {
-	cmd := exec.Command("mysqldump", "--set-gtid-purged=OFF", "--column-statistics=0", "--host=" + dbs.host, "--port=" + dbs.port, "--user=" + dbs.user, "--password=" + dbs.password, "--databases", databaseName)
+	cmd := exec.Command("mysqldump", "--host=" + dbs.host, "--port=" + dbs.port, "--user=" + dbs.user, "--password=" + dbs.password, "--databases", databaseName)
 	
 	outfile, err := os.Create(filename)
     if err != nil {

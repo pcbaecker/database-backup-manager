@@ -2,6 +2,12 @@
 
 This database backup manager can be used to backup multiple databases to an object storage. It is designed to be run regulary by a cronjob or scheduled job with kubernetes. The configuration is completly done with environment variables.
 
+## Tips
+
+The mysql part is tested with mariadb. That may be important due to the difference in the mysqldump implementation.
+
+    sudo apt install mariadb-client
+
 ## Environment variables
 
     DATABASE_TYPE = "mysql"

@@ -14,6 +14,7 @@ import (
 type result struct {
     numberOfDatabases int
     targetFilename string
+    warnings bool
 }
 
 func execute(
@@ -29,9 +30,10 @@ func execute(
         fmt.Println(strconv.Itoa(result.numberOfDatabases) + " databases found!")
     
         fmt.Println("Starting backup of databases")
-        zipFile, err := databaseBackupService.BackupDatabases(databaseNames)
+        zipFile, warnings, err := databaseBackupService.BackupDatabases(databaseNames)
         if (err != nil) {return result, nil}
         defer os.Remove(zipFile)
+        result.warnings = warnings
         fmt.Println("Databases backuped and zipped")
     
         fmt.Println("Starting upload of backupfile")

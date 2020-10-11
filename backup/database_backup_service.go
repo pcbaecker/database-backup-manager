@@ -7,7 +7,7 @@ import (
 )
 
 type DatabaseBackupService interface {
-	BackupDatabases(databaseNames []string) (string,error)
+	BackupDatabases(databaseNames []string) (string,bool,error)
 }
 
 func NewDatabaseBackupService() (DatabaseBackupService,error) {
